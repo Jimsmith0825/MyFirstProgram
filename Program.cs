@@ -1,36 +1,46 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 
-class Employee
+struct Employee
 {
     public int ID;
     public string FirstName;
     public string LastName;
     public double AnnualIncome;
-    public double KiwiSaverRate; // Stored as decimal (e.g., 0.03 for 3%)
+    public double KiwiSaverRate;
     public double FortnightlyPay;
     public double HourlyWage;
 
-    // Converts employee details to string (not used for printing table)
-    public override string ToString()
+    public static string Header()
     {
-        return $"{ID}, {FirstName} {LastName}, ${FortnightlyPay:F2}";
+        return string.Format("{0,-5} {1,-10} {2,-10} {3,10} {4,10} {5,12} {6,18}",
+                               "ID", "FirstName", "LastName", "Income", "KiwiSaver%", "HourlyWage", "FortnightlyPayroll");
+    }
+
+    public string ToRowString()
+    {
+        return string.Format("{0,-5} {1,-10} {2,-10} {3,10:F2} {4,10:F0} {5,12:F2} {6,18:F2}",
+                             ID, FirstName, LastName, AnnualIncome, KiwiSaverRate * 100, HourlyWage, FortnightlyPay);
     }
 }
 
 class PayrollSystem
 {
     static Employee[] employees;
+    static bool isDataLoaded = false;
+    static bool isPayrollCalculated = false;
 
     static void Main()
     {
-        LoadPayrollData();  // Load employee details from the file at startup
+        Console.WriteLine("Welcome to Kiwi Garage. Press Enter to Continue to the Main Menu");
+        Console.ReadLine();
+
+        LoadPayrollData();
+        isDataLoaded = true;
 
         int option;
         do
         {
-            // Display user options in a menu
             Console.WriteLine("\n--- NewKiwi Garage Payroll Menu ---");
             Console.WriteLine("1. Calculate Fortnightly Payroll");
             Console.WriteLine("2. Sort and Display Employees");
@@ -40,26 +50,38 @@ class PayrollSystem
             Console.Write("Enter your option: ");
             option = int.Parse(Console.ReadLine());
 
-            // Call method based on selected option
             switch (option)
             {
-                case 1: CalculatePayroll(); break;
-                case 2: SortAndDisplay(); break;
-                case 3: SearchEmployee(); break;
-                case 4: SaveToFile(); break;
+                case 1: CalculatePayroll(); isPayrollCalculated = true; break;
+                case 2:
+                    if (isDataLoaded)
+                        SortAndDisplay();
+                    else
+                        Console.WriteLine("Please calculate payroll first.");
+                    break;
+                case 3:
+                    if (isDataLoaded)
+                        SearchEmployee();
+                    else
+                        Console.WriteLine("Please calculate payroll first.");
+                    break;
+                case 4:
+                    if (isDataLoaded && isPayrollCalculated)
+                        SaveToFile();
+                    else
+                        Console.WriteLine("Please calculate payroll and display employees first.");
+                    break;
                 case 0: Console.WriteLine("Goodbye!"); break;
                 default: Console.WriteLine("Invalid option."); break;
             }
-        } while (option != 0);  // Loop until user chooses to exit
+        } while (option != 0);
     }
 
     static void LoadPayrollData()
     {
-        // Read all lines from the text file (employee.txt)
         string[] lines = File.ReadAllLines("employee.txt");
-        employees = new Employee[lines.Length / 5]; // 5 lines per employee record
+        employees = new Employee[lines.Length / 5];
 
-        // Parse each set of 5 lines into Employee objects
         for (int i = 0, j = 0; i < lines.Length; i += 5, j++)
         {
             employees[j] = new Employee
@@ -76,56 +98,45 @@ class PayrollSystem
     static void CalculatePayroll()
     {
         Console.WriteLine("\nCalculating Fortnightly Payroll...\n");
+        Console.WriteLine(Employee.Header());
 
-        // Print header row for the payroll table
-        Console.WriteLine("{0,-5} {1,-10} {2,-10} {3,10} {4,10} {5,12} {6,18}",
-                          "ID", "FirstName", "LastName", "Income", "KiwiSaver%", "HourlyWage", "FortnightlyPayroll");
-
-        // Loop through each employee to calculate payroll
-        foreach (var emp in employees)
+        for (int i = 0; i < employees.Length; i++)
         {
-            double annualIncome = emp.AnnualIncome;
-            double kiwiSaverRate = emp.KiwiSaverRate * 100;  // Convert back to percentage for display
-            double kiwiSaver = annualIncome * (kiwiSaverRate / 100);
-
-            // Calculate tax based on income brackets
+            double income = employees[i].AnnualIncome;
+            double rate = employees[i].KiwiSaverRate;
+            double kiwiSaver = income * rate;
             double tax = 0;
-            if (annualIncome <= 15600)
-                tax = annualIncome * 0.105;
-            else if (annualIncome <= 53500)
-                tax = 15600 * 0.105 + (annualIncome - 15600) * 0.175;
-            else if (annualIncome <= 78100)
-                tax = 15600 * 0.105 + (53500 - 15600) * 0.175 + (annualIncome - 53500) * 0.30;
-            else if (annualIncome <= 180000)
+
+            if (income <= 15600)
+                tax = income * 0.105;
+            else if (income <= 53500)
+                tax = 15600 * 0.105 + (income - 15600) * 0.175;
+            else if (income <= 78100)
+                tax = 15600 * 0.105 + (53500 - 15600) * 0.175 + (income - 53500) * 0.30;
+            else if (income <= 180000)
                 tax = 15600 * 0.105 + (53500 - 15600) * 0.175 +
-                      (78100 - 53500) * 0.30 + (annualIncome - 78100) * 0.33;
+                      (78100 - 53500) * 0.30 + (income - 78100) * 0.33;
             else
                 tax = 15600 * 0.105 + (53500 - 15600) * 0.175 +
                       (78100 - 53500) * 0.30 + (180000 - 78100) * 0.33 +
-                      (annualIncome - 180000) * 0.39;
+                      (income - 180000) * 0.39;
 
-            // Final payroll values
-            emp.FortnightlyPay = (annualIncome / 26) - (tax / 26) - (kiwiSaver / 26);  // 26 fortnights in a year
-            emp.HourlyWage = emp.AnnualIncome / 52 / 40;  // 80 hours per fortnight
-
-            // Output formatted results
-            Console.WriteLine("{0,-5} {1,-10} {2,-10} {3,10:F2} {4,10:F0} {5,12:F2} {6,18:F2}",
-                              emp.ID, emp.FirstName, emp.LastName, emp.AnnualIncome,
-                              kiwiSaverRate, emp.HourlyWage, emp.FortnightlyPay);
+            employees[i].FortnightlyPay = (income - tax - kiwiSaver) / 26;
+            employees[i].HourlyWage = income / 52 / 40;
+            Console.WriteLine(employees[i].ToRowString());
         }
 
         Console.WriteLine("\nFortnightly Payroll Calculated\n");
     }
+
     static void SortAndDisplay()
     {
-        // Sort employees using Bubble Sort by ID
         for (int i = 0; i < employees.Length - 1; i++)
         {
             for (int j = 0; j < employees.Length - i - 1; j++)
             {
                 if (employees[j].ID > employees[j + 1].ID)
                 {
-                    // Swap employee records
                     var temp = employees[j];
                     employees[j] = employees[j + 1];
                     employees[j + 1] = temp;
@@ -133,13 +144,11 @@ class PayrollSystem
             }
         }
 
-        // Confirm that sorting was completed
         Console.WriteLine("\nEmployee records sorted by ID:\n");
-
-        // Print the sorted employee details
+        Console.WriteLine(Employee.Header());
         foreach (var emp in employees)
         {
-            Console.WriteLine($"{emp.ID}: {emp.FirstName} {emp.LastName}, Income: ${emp.AnnualIncome:F2}");
+            Console.WriteLine(emp.ToRowString());
         }
     }
 
@@ -149,43 +158,32 @@ class PayrollSystem
         int id = int.Parse(Console.ReadLine());
         bool found = false;
 
-        // Look for the employee by ID
         foreach (var emp in employees)
         {
             if (emp.ID == id)
             {
-                // Display employee payroll details if found
-                Console.WriteLine("{0,-5} {1,-10} {2,-10} {3,10:F2} {4,10:F0} {5,12:F2} {6,18:F2}",
-                                  emp.ID, emp.FirstName, emp.LastName, emp.AnnualIncome,
-                                  emp.KiwiSaverRate * 100, emp.HourlyWage, emp.FortnightlyPay);
+                Console.WriteLine(Employee.Header());
+                Console.WriteLine(emp.ToRowString());
                 found = true;
                 break;
             }
         }
 
-        // Show message if not found
         if (!found)
             Console.WriteLine("Employee not found.");
     }
+
     static void SaveToFile()
     {
         using (StreamWriter writer = new StreamWriter("fortnightlypayroll.txt"))
         {
-            // Write column headers to the file
-            writer.WriteLine("{0,-5} {1,-10} {2,-10} {3,10} {4,10} {5,12} {6,18}",
-                             "ID", "FirstName", "LastName", "Income", "KiwiSaver%", "HourlyWage", "FortnightlyPayroll");
-
-            // Write each employee’s payroll data to the file
+            writer.WriteLine(Employee.Header());
             foreach (var emp in employees)
             {
-                double kiwiSaverRate = emp.KiwiSaverRate * 100;
-                writer.WriteLine("{0,-5} {1,-10} {2,-10} {3,10:F2} {4,10:F0} {5,12:F2} {6,18:F2}",
-                                 emp.ID, emp.FirstName, emp.LastName, emp.AnnualIncome,
-                                 kiwiSaverRate, emp.HourlyWage, emp.FortnightlyPay);
+                writer.WriteLine(emp.ToRowString());
             }
         }
 
-        // Confirmation of save action
         Console.WriteLine("Data saved to fortnightlypayroll.txt");
     }
 }
