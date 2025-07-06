@@ -1,10 +1,12 @@
 ﻿using System;      // Provides base class library types like Console, String, etc.
 using System.IO;   // Provides types for file input/output operations
-using System.Linq; // (Not used in this file, but included)
+using System.Linq; 
 
-//////////////////////////////////////////////////
-// Employee Struct: Stores individual employee data
-//////////////////////////////////////////////////
+namespace PayrollApp
+{ 
+/////////////////////////////////////////////////////
+// Employee Struct: Stores individual employee data//
+////////////////////////////////////////////////////
 struct Employee
 {
     // Fields for each employee's details
@@ -31,9 +33,9 @@ struct Employee
     }
 }
 
-//////////////////////////////////////////////////////
-// PayrollSystem Class: Manages overall payroll process
-//////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////
+// PayrollSystem Class: Manages overall payroll process//
+////////////////////////////////////////////////////////
 class PayrollSystem
 {
     // Array of employee records
@@ -63,10 +65,15 @@ class PayrollSystem
             Console.WriteLine("4. Save to File");
             Console.WriteLine("0. Exit");
             Console.Write("Enter your option: ");
-            option = int.Parse(Console.ReadLine());
+            string input = Console.ReadLine();
+            if (!int.TryParse(input, out option))
+            {
+                Console.WriteLine("Invalid input. Please enter a number.");
+                continue;
+            }
 
-            // Switch based on user input
-            switch (option)
+                // Switch based on user input
+                switch (option)
             {
                 case 1: CalculatePayroll(); isPayrollCalculated = true; break;
                 case 2:
@@ -93,8 +100,8 @@ class PayrollSystem
         } while (option != 0); // Loop until user exits
     }
 
-    //////////////////////////////////////////////////////////
-    // LoadPayrollData: Reads employee records from text file
+    ////////////////////////////////////////////////////////////
+    // LoadPayrollData: Reads employee records from text file//
     //////////////////////////////////////////////////////////
     static void LoadPayrollData()
     {
@@ -115,9 +122,9 @@ class PayrollSystem
         }
     }
 
-    //////////////////////////////////////////////////////
-    // CalculatePayroll: Computes tax, KiwiSaver, pay, etc.
-    //////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////
+    // CalculatePayroll: Computes tax, KiwiSaver, pay, etc.//
+    ////////////////////////////////////////////////////////
     static void CalculatePayroll()
     {
         Console.WriteLine("\nCalculating Fortnightly Payroll...\n");
@@ -155,9 +162,9 @@ class PayrollSystem
         Console.WriteLine("\nFortnightly Payroll Calculated\n");
     }
 
-    ///////////////////////////////////////////////////////////////
-    // SortAndDisplay: Sorts employees by ID and shows formatted data
-    ///////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////
+    // SortAndDisplay: Sorts employees by ID and shows formatted data//
+    //////////////////////////////////////////////////////////////////
     static void SortAndDisplay()
     {
         // Bubble sort based on ID
@@ -183,9 +190,9 @@ class PayrollSystem
         }
     }
 
-    ///////////////////////////////////////////////////////
-    // SearchEmployee: Finds and shows employee by ID input
-    ///////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////
+    // SearchEmployee: Finds and shows employee by ID input//
+    ////////////////////////////////////////////////////////
     static void SearchEmployee()
     {
         Console.Write("Enter employee ID to search: ");
@@ -207,9 +214,9 @@ class PayrollSystem
             Console.WriteLine("Employee not found.");
     }
 
-    //////////////////////////////////////////
-    // SaveToFile: Writes payroll to a .txt file
-    //////////////////////////////////////////
+    ///////////////////////////////////////////////
+    // SaveToFile: Writes payroll to a .txt file//
+    /////////////////////////////////////////////
     static void SaveToFile()
     {
         using (StreamWriter writer = new StreamWriter("fortnightlypayroll.txt"))
@@ -224,3 +231,4 @@ class PayrollSystem
         Console.WriteLine("Data saved to fortnightlypayroll.txt");
     }
 }
+    }
