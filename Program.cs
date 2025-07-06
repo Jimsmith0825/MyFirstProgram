@@ -1,17 +1,19 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 
-struct Employee
+struct Employee 
 {
     public int ID;
     public string FirstName;
     public string LastName;
     public double AnnualIncome;
-    public double KiwiSaverRate;
+    public double KiwiSaverRate; // Stored as decimal
     public double FortnightlyPay;
     public double HourlyWage;
 
-    public static string Header()
+    // Converts employee details to string( not used for printing table)
+    public static string Header()  
     {
         return string.Format("{0,-5} {1,-10} {2,-10} {3,10} {4,10} {5,12} {6,18}",
                                "ID", "FirstName", "LastName", "Income", "KiwiSaver%", "HourlyWage", "FortnightlyPayroll");
@@ -76,24 +78,25 @@ class PayrollSystem
             }
         } while (option != 0);
     }
-
     static void LoadPayrollData()
     {
         string[] lines = File.ReadAllLines("employee.txt");
-        employees = new Employee[lines.Length / 5];
+        employees = new Employee[lines.Length];
 
-        for (int i = 0, j = 0; i < lines.Length; i += 5, j++)
+        for (int i = 0; i < lines.Length; i++)
         {
-            employees[j] = new Employee
+            string[] parts = lines[i].Split(',');
+            employees[i] = new Employee
             {
-                ID = int.Parse(lines[i]),
-                FirstName = lines[i + 1],
-                LastName = lines[i + 2],
-                AnnualIncome = double.Parse(lines[i + 3]),
-                KiwiSaverRate = double.Parse(lines[i + 4].Trim('%')) / 100
+                ID = int.Parse(parts[0].Trim()),
+                FirstName = parts[1].Trim(),
+                LastName = parts[2].Trim(),
+                AnnualIncome = double.Parse(parts[3].Trim()),
+                KiwiSaverRate = double.Parse(parts[4].Trim().TrimEnd('%')) / 100
             };
         }
     }
+
 
     static void CalculatePayroll()
     {
@@ -107,7 +110,7 @@ class PayrollSystem
             double kiwiSaver = income * rate;
             double tax = 0;
 
-            if (income <= 15600)
+            if (income <= 15600 )
                 tax = income * 0.105;
             else if (income <= 53500)
                 tax = 15600 * 0.105 + (income - 15600) * 0.175;
