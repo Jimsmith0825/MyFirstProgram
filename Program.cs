@@ -1,5 +1,5 @@
 ﻿using System;      // Provides base class library types like Console, String, etc. Zhenqiao He
-using System.IO;   // Provides types for file input/output operations Zhenqiao He
+using System.IO;   // Provides types for file input/output operations , Zhenqiao He
 using System.Linq; // Provides LINQ extension methods for arrays and collections
 
 namespace PayrollApp
@@ -114,13 +114,14 @@ namespace PayrollApp
             for (int i = 0; i < lines.Length; i++)
             {
                 string[] parts = lines[i].Split(','); // Split each line into fields
+                
                 employees[i] = new Employee
                 {
                     ID = int.Parse(parts[0].Trim()),
                     FirstName = parts[1].Trim(),
                     LastName = parts[2].Trim(),
                     AnnualIncome = double.Parse(parts[3].Trim()),
-                    KiwiSaverRate = double.Parse(parts[4].Trim().TrimEnd('%')) / 100 // Convert percentage to decimal
+                    KiwiSaverRate = double.Parse(parts[4].Trim().TrimEnd('%')) / 100    // Convert percentage to decimal
                 };
             }
         }
